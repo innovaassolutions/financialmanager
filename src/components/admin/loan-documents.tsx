@@ -71,14 +71,20 @@ export function LoanDocuments({ loanId, documentUrl, documents }: Props) {
         )}
       </div>
 
+      {/* Divider */}
+      <div className="border-t border-border" />
+
       {/* File Upload */}
-      <div className="space-y-2">
-        <p className="text-sm font-medium text-foreground">Uploaded Files</p>
-        <form action={uploadDocument} className="flex items-center gap-2">
+      <div className="space-y-3">
+        <p className="text-sm font-medium text-foreground">Upload Files</p>
+        <form action={uploadDocument} className="flex flex-col gap-3 sm:flex-row sm:items-center">
           <input type="hidden" name="loan_id" value={loanId} />
           <Input name="file" type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" className="max-w-xs" />
-          <Button type="submit" size="sm">Upload</Button>
+          <Button type="submit" size="sm" variant="outline">Upload File</Button>
         </form>
+        <p className="text-xs text-muted-foreground">
+          Accepted: PDF, Word, PNG, JPG
+        </p>
       </div>
 
       {/* File List */}
