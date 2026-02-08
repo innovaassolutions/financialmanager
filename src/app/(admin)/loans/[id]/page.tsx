@@ -9,7 +9,9 @@ import { PaymentForm } from '@/components/admin/payment-form';
 import { LoanActions } from '@/components/admin/loan-actions';
 import { PortalLink } from '@/components/admin/portal-link';
 import { DeletePaymentButton } from '@/components/admin/delete-payment-button';
-import { LoanDocuments } from '@/components/admin/loan-documents';
+import { LoanDocumentLink } from '@/components/admin/loan-document-link';
+import { FileUploadForm } from '@/components/admin/file-upload-form';
+import { DeleteDocumentButton } from '@/components/admin/delete-document-button';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -111,17 +113,54 @@ export default async function LoanDetailPage({ params }: Props) {
         </CardContent>
       </Card>
 
-      {/* Documents */}
+      {/* Document Link */}
       <Card>
         <CardHeader>
-          <CardTitle>Documents</CardTitle>
+          <CardTitle>Document Link</CardTitle>
         </CardHeader>
         <CardContent>
-          <LoanDocuments
-            loanId={loan.id}
-            documentUrl={loan.document_url}
-            documents={documents}
-          />
+          <LoanDocumentLink loanId={loan.id} documentUrl={loan.document_url} />
+        </CardContent>
+      </Card>
+
+      {/* File Upload */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Uploaded Files</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <FileUploadForm loanId={loan.id} />
+
+          {documents.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No files uploaded yet.</p>
+          ) : (
+            <div className="space-y-2">
+              {documents.map((doc) => (
+                <div key={doc.id} className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
+                  <div className="flex items-center gap-3">
+                    <svg className="h-5 w-5 text-muted-foreground" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 14.25v-2.625a3.375 3.375 0 0 0-3.375-3.375h-1.5A1.125 1.125 0 0 1 13.5 7.125v-1.5a3.375 3.375 0 0 0-3.375-3.375H8.25m2.25 0H5.625c-.621 0-1.125.504-1.125 1.125v17.25c0 .621.504 1.125 1.125 1.125h12.75c.621 0 1.125-.504 1.125-1.125V11.25a9 9 0 0 0-9-9Z" />
+                    </svg>
+                    <div>
+                      {doc.url ? (
+                        <a href={doc.url} target="_blank" rel="noopener noreferrer" className="text-sm font-medium text-foreground hover:underline">
+                          {doc.file_name}
+                        </a>
+                      ) : (
+                        <p className="text-sm font-medium text-foreground">{doc.file_name}</p>
+                      )}
+                      <p className="text-xs text-muted-foreground">
+                        {doc.file_size < 1024 * 1024
+                          ? `${(doc.file_size / 1024).toFixed(1)} KB`
+                          : `${(doc.file_size / (1024 * 1024)).toFixed(1)} MB`}
+                      </p>
+                    </div>
+                  </div>
+                  <DeleteDocumentButton documentId={doc.id} filePath={doc.file_path} loanId={loan.id} fileName={doc.file_name} />
+                </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 
