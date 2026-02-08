@@ -87,6 +87,25 @@ export async function createLoan(formData: FormData) {
     }
   }
 
+  // Upload file if provided
+  const file = formData.get('file') as File | null;
+  if (file && file.size > 0) {
+    const filePath = `${user.id}/${loan.id}/${Date.now()}-${file.name}`;
+    const { error: uploadError } = await supabase.storage
+      .from('loan-documents')
+      .upload(filePath, file);
+
+    if (!uploadError) {
+      await supabase.from('loan_documents').insert({
+        user_id: user.id,
+        loan_id: loan.id,
+        file_name: file.name,
+        file_path: filePath,
+        file_size: file.size,
+      });
+    }
+  }
+
   redirect(`/loans/${loan.id}`);
 }
 

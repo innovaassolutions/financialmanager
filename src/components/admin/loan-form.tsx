@@ -124,7 +124,7 @@ export function LoanForm({ creditors }: Props) {
             </div>
           </div>
 
-          {/* Document Link */}
+          {/* Documents */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Document Link (optional)</label>
             <Input
@@ -132,6 +132,12 @@ export function LoanForm({ creditors }: Props) {
               type="url"
               placeholder="https://drive.google.com/..."
             />
+          </div>
+
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Upload Document (optional)</label>
+            <Input name="file" type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" />
+            <p className="text-xs text-muted-foreground">Accepted: PDF, Word, PNG, JPG</p>
           </div>
 
           {/* Notes */}
