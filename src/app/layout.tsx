@@ -15,6 +15,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: 'Financial Manager',
   description: 'Personal finance and loan management',
+  icons: {
+    icon: '/gailfinancemanager.png',
+    apple: '/gailfinancemanager.png',
+  },
 };
 
 export default function RootLayout({
