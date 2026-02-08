@@ -92,10 +92,13 @@ export async function createLoan(formData: FormData) {
   const file = formData.get('file') as File | null;
   if (file && file.size > 0) {
     const admin = createAdminClient();
+    const buffer = Buffer.from(await file.arrayBuffer());
     const filePath = `${user.id}/${loan.id}/${Date.now()}-${file.name}`;
     const { error: uploadError } = await admin.storage
       .from('loan-documents')
-      .upload(filePath, file);
+      .upload(filePath, buffer, {
+        contentType: file.type,
+      });
 
     if (!uploadError) {
       await supabase.from('loan_documents').insert({
@@ -204,26 +207,29 @@ export async function uploadDocument(formData: FormData) {
   const loanId = formData.get('loan_id') as string;
   const file = formData.get('file') as File;
 
-  if (!file || file.size === 0) throw new Error('No file selected');
+  if (!file || file.size === 0) {
+    redirect(`/loans/${loanId}`);
+  }
 
   const admin = createAdminClient();
+  const buffer = Buffer.from(await file.arrayBuffer());
   const filePath = `${user.id}/${loanId}/${Date.now()}-${file.name}`;
 
   const { error: uploadError } = await admin.storage
     .from('loan-documents')
-    .upload(filePath, file);
+    .upload(filePath, buffer, {
+      contentType: file.type,
+    });
 
-  if (uploadError) throw new Error(uploadError.message);
-
-  const { error: dbError } = await supabase.from('loan_documents').insert({
-    user_id: user.id,
-    loan_id: loanId,
-    file_name: file.name,
-    file_path: filePath,
-    file_size: file.size,
-  });
-
-  if (dbError) throw new Error(dbError.message);
+  if (!uploadError) {
+    await supabase.from('loan_documents').insert({
+      user_id: user.id,
+      loan_id: loanId,
+      file_name: file.name,
+      file_path: filePath,
+      file_size: file.size,
+    });
+  }
 
   redirect(`/loans/${loanId}`);
 }
