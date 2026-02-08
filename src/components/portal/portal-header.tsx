@@ -12,7 +12,7 @@ export function PortalHeader({ creditorName }: { creditorName: string }) {
           className="rounded-full"
         />
         <div>
-          <p className="text-sm text-muted-foreground">Financial Manager</p>
+          <p className="text-sm text-muted-foreground">Creditor Portal</p>
           <h1 className="text-xl font-semibold text-foreground">{creditorName}</h1>
         </div>
       </div>
