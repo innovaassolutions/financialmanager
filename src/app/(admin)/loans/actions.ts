@@ -1,6 +1,7 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { redirect } from 'next/navigation';
 import { generateAccessToken } from '@/lib/utils/tokens';
 import { generateHistoricalAccruals } from '@/lib/utils/interest';
@@ -90,8 +91,9 @@ export async function createLoan(formData: FormData) {
   // Upload file if provided
   const file = formData.get('file') as File | null;
   if (file && file.size > 0) {
+    const admin = createAdminClient();
     const filePath = `${user.id}/${loan.id}/${Date.now()}-${file.name}`;
-    const { error: uploadError } = await supabase.storage
+    const { error: uploadError } = await admin.storage
       .from('loan-documents')
       .upload(filePath, file);
 
@@ -151,12 +153,13 @@ export async function deleteLoan(loanId: string) {
   if (!user) redirect('/login');
 
   // Delete uploaded files from storage
+  const admin = createAdminClient();
   const { data: docs } = await supabase
     .from('loan_documents')
     .select('file_path')
     .eq('loan_id', loanId);
   if (docs && docs.length > 0) {
-    await supabase.storage
+    await admin.storage
       .from('loan-documents')
       .remove(docs.map((d) => d.file_path));
   }
@@ -203,9 +206,10 @@ export async function uploadDocument(formData: FormData) {
 
   if (!file || file.size === 0) throw new Error('No file selected');
 
+  const admin = createAdminClient();
   const filePath = `${user.id}/${loanId}/${Date.now()}-${file.name}`;
 
-  const { error: uploadError } = await supabase.storage
+  const { error: uploadError } = await admin.storage
     .from('loan-documents')
     .upload(filePath, file);
 
@@ -229,7 +233,8 @@ export async function deleteDocument(documentId: string, filePath: string, loanI
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
-  await supabase.storage.from('loan-documents').remove([filePath]);
+  const admin = createAdminClient();
+  await admin.storage.from('loan-documents').remove([filePath]);
   await supabase.from('loan_documents').delete().eq('id', documentId);
 
   redirect(`/loans/${loanId}`);

@@ -1,4 +1,5 @@
 import { createClient } from '@/lib/supabase/server';
+import { createAdminClient } from '@/lib/supabase/admin';
 import { notFound } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
@@ -56,9 +57,10 @@ export default async function LoanDetailPage({ params }: Props) {
   ]);
 
   const rawDocs = docsRes.data ?? [];
+  const admin = createAdminClient();
   const documents = await Promise.all(
     rawDocs.map(async (doc) => {
-      const { data } = await supabase.storage
+      const { data } = await admin.storage
         .from('loan-documents')
         .createSignedUrl(doc.file_path, 3600);
       return { ...doc, url: data?.signedUrl };
