@@ -14,6 +14,7 @@ interface Props {
   interestRate: number;
   interestType: string;
   disbursementCount?: number;
+  notes?: string | null;
 }
 
 const statusVariant: Record<string, 'success' | 'warning' | 'destructive'> = {
@@ -33,6 +34,7 @@ export function LoanSummary({
   interestRate,
   interestType,
   disbursementCount,
+  notes,
 }: Props) {
   const totalOwed = principal + totalInterest;
   const progressPercent = totalOwed > 0 ? Math.min(100, (totalPaid / totalOwed) * 100) : 0;
@@ -41,7 +43,12 @@ export function LoanSummary({
     <Card>
       <CardHeader>
         <div className="flex items-center justify-between">
-          <CardTitle>Loan Summary</CardTitle>
+          <div>
+            <CardTitle>Loan Summary</CardTitle>
+            {notes && (
+              <p className="mt-1 text-sm text-muted-foreground">{notes}</p>
+            )}
+          </div>
           <Badge variant={statusVariant[status]}>
             {LOAN_STATUS_LABELS[status]}
           </Badge>

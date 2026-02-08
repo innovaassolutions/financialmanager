@@ -14,6 +14,7 @@ create table creditors (
   notes text,
   access_token text not null unique default encode(gen_random_bytes(32), 'hex'),
   telegram_chat_id text,
+  token_arrangement jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );

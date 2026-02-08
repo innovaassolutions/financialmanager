@@ -3,6 +3,13 @@ export type AccrualFrequency = 'daily' | 'monthly';
 export type LoanStatus = 'active' | 'paid_off' | 'defaulted';
 export type ChatRole = 'user' | 'assistant';
 
+export interface TokenArrangement {
+  cmc_slug: string;
+  symbol: string;
+  amount: number;
+  label: string;
+}
+
 export interface Creditor {
   id: string;
   user_id: string;
@@ -12,6 +19,7 @@ export interface Creditor {
   notes: string | null;
   access_token: string;
   telegram_chat_id: string | null;
+  token_arrangement: TokenArrangement | null;
   created_at: string;
   updated_at: string;
 }

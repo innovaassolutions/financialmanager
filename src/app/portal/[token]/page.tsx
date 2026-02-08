@@ -1,9 +1,11 @@
 import { createAdminClient } from '@/lib/supabase/admin';
 import { notFound } from 'next/navigation';
 import { PortalHeader } from '@/components/portal/portal-header';
+import { TokenTracker } from '@/components/portal/token-tracker';
 import { LoanSummary } from '@/components/portal/loan-summary';
 import { PortalPaymentHistory } from '@/components/portal/payment-history';
 import { PortalDocuments } from '@/components/portal/portal-documents';
+import type { TokenArrangement } from '@/types/database';
 
 interface Props {
   params: Promise<{ token: string }>;
@@ -27,7 +29,7 @@ export default async function PortalPage({ params }: Props) {
     .from('loans')
     .select('*')
     .eq('creditor_id', creditor.id)
-    .order('loan_date', { ascending: false });
+    .order('loan_date', { ascending: true });
 
   const loanList = loans ?? [];
 
@@ -51,7 +53,7 @@ export default async function PortalPage({ params }: Props) {
       .order('created_at', { ascending: false }),
     supabase
       .from('disbursements')
-      .select('loan_id')
+      .select('loan_id, amount')
       .in('loan_id', loanIds.length > 0 ? loanIds : ['_none_']),
   ]);
 
@@ -74,28 +76,43 @@ export default async function PortalPage({ params }: Props) {
   const loansWithTotals = loanList.map((loan) => {
     const loanPayments = payments.filter((p) => p.loan_id === loan.id);
     const loanInterest = interestAccruals.filter((i) => i.loan_id === loan.id);
+    const loanDisbursements = allDisbursements.filter((d) => d.loan_id === loan.id);
     const totalPaid = loanPayments.reduce((sum, p) => sum + Number(p.amount), 0);
     const totalInterest = loanInterest.reduce((sum, i) => sum + Number(i.amount), 0);
-    const balance = Number(loan.principal) + totalInterest - totalPaid;
+    const totalDisbursed = loanDisbursements.reduce((sum, d) => sum + Number(d.amount), 0);
+
+    // Use disbursement total as principal if loan has disbursements, otherwise use loan.principal
+    const effectivePrincipal = loanDisbursements.length > 0 ? totalDisbursed : Number(loan.principal);
+    const balance = effectivePrincipal + totalInterest - totalPaid;
 
     const loanDocs = docsWithUrls.filter((d) => d.loan_id === loan.id);
-    const disbursementCount = allDisbursements.filter((d) => d.loan_id === loan.id).length;
 
     return {
       ...loan,
+      principal: effectivePrincipal,
       totalPaid,
       totalInterest,
       balance: Math.max(0, balance),
       payments: loanPayments,
       documents: loanDocs,
-      disbursementCount,
+      disbursementCount: loanDisbursements.length,
     };
   });
+
+  const tokenArrangement = creditor.token_arrangement as TokenArrangement | null;
 
   return (
     <div className="min-h-screen bg-muted">
       <PortalHeader creditorName={creditor.name} />
       <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+        {tokenArrangement && (
+          <TokenTracker
+            symbol={tokenArrangement.symbol}
+            amount={tokenArrangement.amount}
+            label={tokenArrangement.label}
+            apiSlug={tokenArrangement.cmc_slug}
+          />
+        )}
         {loansWithTotals.length === 0 ? (
           <p className="py-12 text-center text-sm text-muted-foreground">
             No loans found.
@@ -104,7 +121,7 @@ export default async function PortalPage({ params }: Props) {
           loansWithTotals.map((loan) => (
             <div key={loan.id} className="space-y-4">
               <LoanSummary
-                principal={Number(loan.principal)}
+                principal={loan.principal}
                 totalInterest={loan.totalInterest}
                 totalPaid={loan.totalPaid}
                 balance={loan.balance}
@@ -114,6 +131,7 @@ export default async function PortalPage({ params }: Props) {
                 interestRate={Number(loan.interest_rate)}
                 interestType={loan.interest_type}
                 disbursementCount={loan.disbursementCount}
+                notes={loan.notes}
               />
               <PortalDocuments
                 documentUrl={loan.document_url}
