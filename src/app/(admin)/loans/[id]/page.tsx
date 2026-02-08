@@ -9,6 +9,7 @@ import { PaymentForm } from '@/components/admin/payment-form';
 import { LoanActions } from '@/components/admin/loan-actions';
 import { PortalLink } from '@/components/admin/portal-link';
 import { DeletePaymentButton } from '@/components/admin/delete-payment-button';
+import { LoanDocuments } from '@/components/admin/loan-documents';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -32,7 +33,7 @@ export default async function LoanDetailPage({ params }: Props) {
 
   if (!loan) notFound();
 
-  const [paymentsRes, interestRes] = await Promise.all([
+  const [paymentsRes, interestRes, docsRes] = await Promise.all([
     supabase
       .from('payments')
       .select('*')
@@ -43,7 +44,22 @@ export default async function LoanDetailPage({ params }: Props) {
       .select('*')
       .eq('loan_id', id)
       .order('accrual_date', { ascending: false }),
+    supabase
+      .from('loan_documents')
+      .select('*')
+      .eq('loan_id', id)
+      .order('created_at', { ascending: false }),
   ]);
+
+  const rawDocs = docsRes.data ?? [];
+  const documents = await Promise.all(
+    rawDocs.map(async (doc) => {
+      const { data } = await supabase.storage
+        .from('loan-documents')
+        .createSignedUrl(doc.file_path, 3600);
+      return { ...doc, url: data?.signedUrl };
+    }),
+  );
 
   const payments = paymentsRes.data ?? [];
   const interestAccruals = interestRes.data ?? [];
@@ -92,6 +108,20 @@ export default async function LoanDetailPage({ params }: Props) {
             <Detail label="Due Date" value={loan.due_date ? formatDate(loan.due_date) : 'No due date'} />
             {loan.notes && <Detail label="Notes" value={loan.notes} />}
           </dl>
+        </CardContent>
+      </Card>
+
+      {/* Documents */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Documents</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <LoanDocuments
+            loanId={loan.id}
+            documentUrl={loan.document_url}
+            documents={documents}
+          />
         </CardContent>
       </Card>
 

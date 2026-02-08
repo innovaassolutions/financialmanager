@@ -124,6 +124,16 @@ export function LoanForm({ creditors }: Props) {
             </div>
           </div>
 
+          {/* Document Link */}
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-foreground">Document Link (optional)</label>
+            <Input
+              name="document_url"
+              type="url"
+              placeholder="https://drive.google.com/..."
+            />
+          </div>
+
           {/* Notes */}
           <div className="space-y-2">
             <label className="text-sm font-medium text-foreground">Notes (optional)</label>

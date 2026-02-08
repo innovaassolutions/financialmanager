@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { PortalHeader } from '@/components/portal/portal-header';
 import { LoanSummary } from '@/components/portal/loan-summary';
 import { PortalPaymentHistory } from '@/components/portal/payment-history';
+import { PortalDocuments } from '@/components/portal/portal-documents';
 
 interface Props {
   params: Promise<{ token: string }>;
@@ -33,7 +34,7 @@ export default async function PortalPage({ params }: Props) {
   // Get payments and interest for each loan
   const loanIds = loanList.map((l) => l.id);
 
-  const [paymentsRes, interestRes] = await Promise.all([
+  const [paymentsRes, interestRes, docsRes] = await Promise.all([
     supabase
       .from('payments')
       .select('*')
@@ -43,10 +44,30 @@ export default async function PortalPage({ params }: Props) {
       .from('interest_accruals')
       .select('*')
       .in('loan_id', loanIds.length > 0 ? loanIds : ['_none_']),
+    supabase
+      .from('loan_documents')
+      .select('*')
+      .in('loan_id', loanIds.length > 0 ? loanIds : ['_none_'])
+      .order('created_at', { ascending: false }),
   ]);
 
   const payments = paymentsRes.data ?? [];
   const interestAccruals = interestRes.data ?? [];
+  const allDocs = docsRes.data ?? [];
+
+  // Generate signed URLs for documents
+  const docsWithUrls = await Promise.all(
+    allDocs.map(async (doc) => {
+      const { data } = supabase.storage
+        .from('loan-documents')
+        .getPublicUrl(doc.file_path);
+      // Use signed URL since bucket is private
+      const { data: signed } = await supabase.storage
+        .from('loan-documents')
+        .createSignedUrl(doc.file_path, 3600);
+      return { ...doc, url: signed?.signedUrl };
+    }),
+  );
 
   // Calculate totals per loan
   const loansWithTotals = loanList.map((loan) => {
@@ -56,12 +77,15 @@ export default async function PortalPage({ params }: Props) {
     const totalInterest = loanInterest.reduce((sum, i) => sum + Number(i.amount), 0);
     const balance = Number(loan.principal) + totalInterest - totalPaid;
 
+    const loanDocs = docsWithUrls.filter((d) => d.loan_id === loan.id);
+
     return {
       ...loan,
       totalPaid,
       totalInterest,
       balance: Math.max(0, balance),
       payments: loanPayments,
+      documents: loanDocs,
     };
   });
 
@@ -86,6 +110,10 @@ export default async function PortalPage({ params }: Props) {
                 status={loan.status}
                 interestRate={Number(loan.interest_rate)}
                 interestType={loan.interest_type}
+              />
+              <PortalDocuments
+                documentUrl={loan.document_url}
+                documents={loan.documents}
               />
               <PortalPaymentHistory payments={loan.payments} />
             </div>

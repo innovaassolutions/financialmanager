@@ -19,6 +19,7 @@ export async function createLoan(formData: FormData) {
   const accrualFrequency = formData.get('accrual_frequency') as string;
   const loanDate = formData.get('loan_date') as string;
   const dueDate = (formData.get('due_date') as string) || null;
+  const documentUrl = (formData.get('document_url') as string) || null;
   const notes = (formData.get('notes') as string) || null;
 
   let finalCreditorId = creditorId;
@@ -50,6 +51,7 @@ export async function createLoan(formData: FormData) {
       accrual_frequency: accrualFrequency,
       loan_date: loanDate,
       due_date: dueDate,
+      document_url: documentUrl,
       notes,
     })
     .select('id')
@@ -129,7 +131,19 @@ export async function deleteLoan(loanId: string) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) redirect('/login');
 
+  // Delete uploaded files from storage
+  const { data: docs } = await supabase
+    .from('loan_documents')
+    .select('file_path')
+    .eq('loan_id', loanId);
+  if (docs && docs.length > 0) {
+    await supabase.storage
+      .from('loan-documents')
+      .remove(docs.map((d) => d.file_path));
+  }
+
   // Delete related records first (cascade should handle this, but be explicit)
+  await supabase.from('loan_documents').delete().eq('loan_id', loanId);
   await supabase.from('interest_accruals').delete().eq('loan_id', loanId);
   await supabase.from('payments').delete().eq('loan_id', loanId);
   await supabase.from('loans').delete().eq('id', loanId);
@@ -143,6 +157,61 @@ export async function deletePayment(paymentId: string, loanId: string) {
   if (!user) redirect('/login');
 
   await supabase.from('payments').delete().eq('id', paymentId);
+
+  redirect(`/loans/${loanId}`);
+}
+
+export async function updateDocumentUrl(loanId: string, documentUrl: string | null) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  await supabase
+    .from('loans')
+    .update({ document_url: documentUrl || null })
+    .eq('id', loanId);
+
+  redirect(`/loans/${loanId}`);
+}
+
+export async function uploadDocument(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  const loanId = formData.get('loan_id') as string;
+  const file = formData.get('file') as File;
+
+  if (!file || file.size === 0) throw new Error('No file selected');
+
+  const filePath = `${user.id}/${loanId}/${Date.now()}-${file.name}`;
+
+  const { error: uploadError } = await supabase.storage
+    .from('loan-documents')
+    .upload(filePath, file);
+
+  if (uploadError) throw new Error(uploadError.message);
+
+  const { error: dbError } = await supabase.from('loan_documents').insert({
+    user_id: user.id,
+    loan_id: loanId,
+    file_name: file.name,
+    file_path: filePath,
+    file_size: file.size,
+  });
+
+  if (dbError) throw new Error(dbError.message);
+
+  redirect(`/loans/${loanId}`);
+}
+
+export async function deleteDocument(documentId: string, filePath: string, loanId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  await supabase.storage.from('loan-documents').remove([filePath]);
+  await supabase.from('loan_documents').delete().eq('id', documentId);
 
   redirect(`/loans/${loanId}`);
 }

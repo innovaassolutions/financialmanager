@@ -27,6 +27,7 @@ export interface Loan {
   loan_date: string;
   due_date: string | null;
   status: LoanStatus;
+  document_url: string | null;
   notes: string | null;
   created_at: string;
   updated_at: string;
@@ -56,6 +57,16 @@ export interface InterestAccrual {
   accrual_date: string;
   interest_type: InterestType;
   is_manual: boolean;
+  created_at: string;
+}
+
+export interface LoanDocument {
+  id: string;
+  user_id: string;
+  loan_id: string;
+  file_name: string;
+  file_path: string;
+  file_size: number;
   created_at: string;
 }
 
