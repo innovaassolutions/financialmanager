@@ -124,6 +124,29 @@ export async function updateLoanStatus(loanId: string, status: string) {
   redirect(`/loans/${loanId}`);
 }
 
+export async function deleteLoan(loanId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  // Delete related records first (cascade should handle this, but be explicit)
+  await supabase.from('interest_accruals').delete().eq('loan_id', loanId);
+  await supabase.from('payments').delete().eq('loan_id', loanId);
+  await supabase.from('loans').delete().eq('id', loanId);
+
+  redirect('/loans');
+}
+
+export async function deletePayment(paymentId: string, loanId: string) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  await supabase.from('payments').delete().eq('id', paymentId);
+
+  redirect(`/loans/${loanId}`);
+}
+
 export async function regenerateToken(creditorId: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

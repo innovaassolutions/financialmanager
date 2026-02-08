@@ -8,6 +8,7 @@ import { LOAN_STATUS_LABELS, INTEREST_TYPE_LABELS, ACCRUAL_FREQUENCY_LABELS } fr
 import { PaymentForm } from '@/components/admin/payment-form';
 import { LoanActions } from '@/components/admin/loan-actions';
 import { PortalLink } from '@/components/admin/portal-link';
+import { DeletePaymentButton } from '@/components/admin/delete-payment-button';
 
 interface Props {
   params: Promise<{ id: string }>;
@@ -139,6 +140,7 @@ export default async function LoanDetailPage({ params }: Props) {
                   <TableHead>Date</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Notes</TableHead>
+                  <TableHead></TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -148,6 +150,9 @@ export default async function LoanDetailPage({ params }: Props) {
                     <TableCell>{formatCurrency(Number(payment.amount))}</TableCell>
                     <TableCell className="text-muted-foreground">
                       {payment.notes || '—'}
+                    </TableCell>
+                    <TableCell>
+                      <DeletePaymentButton paymentId={payment.id} loanId={loan.id} />
                     </TableCell>
                   </TableRow>
                 ))}

@@ -1,6 +1,6 @@
 'use client';
 
-import { updateLoanStatus } from '@/app/(admin)/loans/actions';
+import { updateLoanStatus, deleteLoan } from '@/app/(admin)/loans/actions';
 import { Button } from '@/components/ui/button';
 
 interface Props {
@@ -9,8 +9,6 @@ interface Props {
 }
 
 export function LoanActions({ loanId, currentStatus }: Props) {
-  if (currentStatus === 'paid_off') return null;
-
   return (
     <div className="flex gap-2">
       {currentStatus === 'active' && (
@@ -34,6 +32,25 @@ export function LoanActions({ loanId, currentStatus }: Props) {
           </Button>
         </form>
       )}
+      {currentStatus === 'paid_off' && (
+        <form action={updateLoanStatus.bind(null, loanId, 'active')}>
+          <Button type="submit" variant="outline" size="sm">
+            Reactivate
+          </Button>
+        </form>
+      )}
+      <form
+        action={deleteLoan.bind(null, loanId)}
+        onSubmit={(e) => {
+          if (!confirm('Delete this loan and all its payments and interest records?')) {
+            e.preventDefault();
+          }
+        }}
+      >
+        <Button type="submit" variant="destructive" size="sm">
+          Delete Loan
+        </Button>
+      </form>
     </div>
   );
 }
