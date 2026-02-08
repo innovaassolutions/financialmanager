@@ -58,6 +58,17 @@ create table interest_accruals (
   created_at timestamptz not null default now()
 );
 
+-- Disbursements table
+create table disbursements (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  loan_id uuid not null references loans(id) on delete cascade,
+  amount numeric(12,2) not null,
+  disbursement_date date not null default current_date,
+  notes text,
+  created_at timestamptz not null default now()
+);
+
 -- Chat history table
 create table chat_history (
   id uuid primary key default gen_random_uuid(),
@@ -93,6 +104,7 @@ alter table creditors enable row level security;
 alter table loans enable row level security;
 alter table payments enable row level security;
 alter table interest_accruals enable row level security;
+alter table disbursements enable row level security;
 alter table chat_history enable row level security;
 
 -- RLS policies
@@ -108,6 +120,9 @@ create policy "Users can manage their own payments"
 create policy "Users can manage their own interest accruals"
   on interest_accruals for all using (auth.uid() = user_id);
 
+create policy "Users can manage their own disbursements"
+  on disbursements for all using (auth.uid() = user_id);
+
 create policy "Users can manage their own chat history"
   on chat_history for all using (auth.uid() = user_id);
 
@@ -116,6 +131,7 @@ create index idx_loans_creditor on loans(creditor_id);
 create index idx_loans_status on loans(status);
 create index idx_payments_loan on payments(loan_id);
 create index idx_interest_accruals_loan on interest_accruals(loan_id);
+create index idx_disbursements_loan on disbursements(loan_id);
 create index idx_creditors_access_token on creditors(access_token);
 create index idx_chat_history_user on chat_history(user_id, created_at);
 

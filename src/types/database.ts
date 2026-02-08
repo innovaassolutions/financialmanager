@@ -35,6 +35,17 @@ export interface Loan {
   creditor?: Creditor;
   payments?: Payment[];
   interest_accruals?: InterestAccrual[];
+  disbursements?: Disbursement[];
+}
+
+export interface Disbursement {
+  id: string;
+  user_id: string;
+  loan_id: string;
+  amount: number;
+  disbursement_date: string;
+  notes: string | null;
+  created_at: string;
 }
 
 export interface Payment {

@@ -13,10 +13,11 @@ interface Props {
   status: string;
   interestRate: number;
   interestType: string;
+  disbursementCount?: number;
 }
 
 const statusVariant: Record<string, 'success' | 'warning' | 'destructive'> = {
-  active: 'warning',
+  active: 'success',
   paid_off: 'success',
   defaulted: 'destructive',
 };
@@ -31,6 +32,7 @@ export function LoanSummary({
   status,
   interestRate,
   interestType,
+  disbursementCount,
 }: Props) {
   const totalOwed = principal + totalInterest;
   const progressPercent = totalOwed > 0 ? Math.min(100, (totalPaid / totalOwed) * 100) : 0;
@@ -73,7 +75,11 @@ export function LoanSummary({
         {/* Details grid */}
         <div className="grid grid-cols-2 gap-4 text-sm">
           <div>
-            <p className="text-muted-foreground">Principal</p>
+            <p className="text-muted-foreground">
+              {disbursementCount && disbursementCount > 1
+                ? `Principal (${disbursementCount} disbursements)`
+                : 'Principal'}
+            </p>
             <p className="font-medium">{formatCurrency(principal)}</p>
           </div>
           <div>

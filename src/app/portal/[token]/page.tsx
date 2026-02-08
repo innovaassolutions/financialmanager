@@ -34,7 +34,7 @@ export default async function PortalPage({ params }: Props) {
   // Get payments and interest for each loan
   const loanIds = loanList.map((l) => l.id);
 
-  const [paymentsRes, interestRes, docsRes] = await Promise.all([
+  const [paymentsRes, interestRes, docsRes, disbursementsRes] = await Promise.all([
     supabase
       .from('payments')
       .select('*')
@@ -49,11 +49,16 @@ export default async function PortalPage({ params }: Props) {
       .select('*')
       .in('loan_id', loanIds.length > 0 ? loanIds : ['_none_'])
       .order('created_at', { ascending: false }),
+    supabase
+      .from('disbursements')
+      .select('loan_id')
+      .in('loan_id', loanIds.length > 0 ? loanIds : ['_none_']),
   ]);
 
   const payments = paymentsRes.data ?? [];
   const interestAccruals = interestRes.data ?? [];
   const allDocs = docsRes.data ?? [];
+  const allDisbursements = disbursementsRes.data ?? [];
 
   // Generate signed URLs for documents
   const docsWithUrls = await Promise.all(
@@ -74,6 +79,7 @@ export default async function PortalPage({ params }: Props) {
     const balance = Number(loan.principal) + totalInterest - totalPaid;
 
     const loanDocs = docsWithUrls.filter((d) => d.loan_id === loan.id);
+    const disbursementCount = allDisbursements.filter((d) => d.loan_id === loan.id).length;
 
     return {
       ...loan,
@@ -82,6 +88,7 @@ export default async function PortalPage({ params }: Props) {
       balance: Math.max(0, balance),
       payments: loanPayments,
       documents: loanDocs,
+      disbursementCount,
     };
   });
 
@@ -106,6 +113,7 @@ export default async function PortalPage({ params }: Props) {
                 status={loan.status}
                 interestRate={Number(loan.interest_rate)}
                 interestType={loan.interest_type}
+                disbursementCount={loan.disbursementCount}
               />
               <PortalDocuments
                 documentUrl={loan.document_url}

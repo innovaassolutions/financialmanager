@@ -60,6 +60,15 @@ export async function createLoan(formData: FormData) {
 
   if (error) throw new Error(error.message);
 
+  // Create initial disbursement record
+  await supabase.from('disbursements').insert({
+    user_id: user.id,
+    loan_id: loan.id,
+    amount: principal,
+    disbursement_date: loanDate,
+    notes: 'Initial disbursement',
+  });
+
   // Generate retroactive interest if loan date is in the past
   if (interestRate > 0) {
     const accruals = generateHistoricalAccruals({
@@ -136,6 +145,91 @@ export async function recordPayment(formData: FormData) {
   redirect(`/loans/${loanId}`);
 }
 
+export async function recordDisbursement(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  const loanId = formData.get('loan_id') as string;
+  const amount = parseFloat(formData.get('amount') as string);
+  const disbursementDate = formData.get('disbursement_date') as string;
+  const notes = (formData.get('notes') as string) || null;
+
+  // Insert the disbursement
+  const { error } = await supabase.from('disbursements').insert({
+    user_id: user.id,
+    loan_id: loanId,
+    amount,
+    disbursement_date: disbursementDate,
+    notes,
+  });
+
+  if (error) throw new Error(error.message);
+
+  // Fetch all disbursements to recalculate principal and loan_date
+  const { data: allDisbursements } = await supabase
+    .from('disbursements')
+    .select('amount, disbursement_date')
+    .eq('loan_id', loanId)
+    .order('disbursement_date', { ascending: true });
+
+  const disbursements = allDisbursements ?? [];
+  const newPrincipal = disbursements.reduce((sum, d) => sum + Number(d.amount), 0);
+  const earliestDate = disbursements[0]?.disbursement_date;
+
+  // Update loan principal and loan_date
+  await supabase
+    .from('loans')
+    .update({ principal: newPrincipal, loan_date: earliestDate })
+    .eq('id', loanId);
+
+  // Fetch loan details for interest regeneration
+  const { data: loan } = await supabase
+    .from('loans')
+    .select('interest_rate, interest_type, accrual_frequency')
+    .eq('id', loanId)
+    .single();
+
+  if (loan && Number(loan.interest_rate) > 0) {
+    // Delete non-manual accruals and regenerate with full disbursement timeline
+    await supabase
+      .from('interest_accruals')
+      .delete()
+      .eq('loan_id', loanId)
+      .eq('is_manual', false);
+
+    const accruals = generateHistoricalAccruals({
+      principal: newPrincipal,
+      rate: Number(loan.interest_rate),
+      interestType: loan.interest_type as InterestType,
+      frequency: loan.accrual_frequency as AccrualFrequency,
+      loanDate: earliestDate,
+      disbursements: disbursements.map((d) => ({
+        amount: Number(d.amount),
+        date: d.disbursement_date,
+      })),
+    });
+
+    if (accruals.length > 0) {
+      const rows = accruals.map((a) => ({
+        user_id: user.id,
+        loan_id: loanId,
+        amount: a.amount,
+        accrual_date: a.accrual_date,
+        interest_type: a.interest_type,
+        is_manual: false,
+      }));
+
+      for (let i = 0; i < rows.length; i += 500) {
+        const batch = rows.slice(i, i + 500);
+        await supabase.from('interest_accruals').insert(batch);
+      }
+    }
+  }
+
+  redirect(`/loans/${loanId}`);
+}
+
 export async function updateLoanStatus(loanId: string, status: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -168,6 +262,7 @@ export async function deleteLoan(loanId: string) {
   }
 
   // Delete related records first (cascade should handle this, but be explicit)
+  await supabase.from('disbursements').delete().eq('loan_id', loanId);
   await supabase.from('loan_documents').delete().eq('loan_id', loanId);
   await supabase.from('interest_accruals').delete().eq('loan_id', loanId);
   await supabase.from('payments').delete().eq('loan_id', loanId);

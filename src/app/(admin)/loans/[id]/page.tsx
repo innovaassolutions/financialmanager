@@ -9,6 +9,7 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { formatCurrency, formatDate, formatPercent } from '@/lib/utils/format';
 import { LOAN_STATUS_LABELS, INTEREST_TYPE_LABELS, ACCRUAL_FREQUENCY_LABELS } from '@/lib/utils/constants';
 import { PaymentForm } from '@/components/admin/payment-form';
+import { DisbursementForm } from '@/components/admin/disbursement-form';
 import { LoanActions } from '@/components/admin/loan-actions';
 import { PortalLink } from '@/components/admin/portal-link';
 import { DeletePaymentButton } from '@/components/admin/delete-payment-button';
@@ -21,7 +22,7 @@ interface Props {
 }
 
 const statusVariant: Record<string, 'success' | 'warning' | 'destructive'> = {
-  active: 'warning',
+  active: 'success',
   paid_off: 'success',
   defaulted: 'destructive',
 };
@@ -38,7 +39,7 @@ export default async function LoanDetailPage({ params }: Props) {
 
   if (!loan) notFound();
 
-  const [paymentsRes, interestRes, docsRes] = await Promise.all([
+  const [paymentsRes, interestRes, docsRes, disbursementsRes] = await Promise.all([
     supabase
       .from('payments')
       .select('*')
@@ -54,6 +55,11 @@ export default async function LoanDetailPage({ params }: Props) {
       .select('*')
       .eq('loan_id', id)
       .order('created_at', { ascending: false }),
+    supabase
+      .from('disbursements')
+      .select('*')
+      .eq('loan_id', id)
+      .order('disbursement_date', { ascending: false }),
   ]);
 
   const rawDocs = docsRes.data ?? [];
@@ -69,6 +75,7 @@ export default async function LoanDetailPage({ params }: Props) {
 
   const payments = paymentsRes.data ?? [];
   const interestAccruals = interestRes.data ?? [];
+  const disbursements = disbursementsRes.data ?? [];
   const totalPayments = payments.reduce((sum, p) => sum + Number(p.amount), 0);
   const totalInterest = interestAccruals.reduce((sum, i) => sum + Number(i.amount), 0);
   const balance = Number(loan.principal) + totalInterest - totalPayments;
@@ -90,7 +97,10 @@ export default async function LoanDetailPage({ params }: Props) {
 
       {/* Summary Cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <SummaryCard label="Principal" value={formatCurrency(Number(loan.principal))} />
+        <SummaryCard
+          label={disbursements.length > 1 ? `Principal (${disbursements.length} disbursements)` : 'Principal'}
+          value={formatCurrency(Number(loan.principal))}
+        />
         <SummaryCard label="Interest Accrued" value={formatCurrency(totalInterest)} />
         <SummaryCard label="Total Paid" value={formatCurrency(totalPayments)} />
         <SummaryCard
@@ -183,6 +193,53 @@ export default async function LoanDetailPage({ params }: Props) {
 
       {/* Loan Status Actions */}
       <LoanActions loanId={loan.id} currentStatus={loan.status} />
+
+      {/* Record Disbursement */}
+      {loan.status === 'active' && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Record Disbursement</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <DisbursementForm loanId={loan.id} />
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Disbursement History */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Disbursement History</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {disbursements.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              No disbursements recorded yet.
+            </p>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Amount</TableHead>
+                  <TableHead>Notes</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {disbursements.map((disbursement) => (
+                  <TableRow key={disbursement.id}>
+                    <TableCell>{formatDate(disbursement.disbursement_date)}</TableCell>
+                    <TableCell>{formatCurrency(Number(disbursement.amount))}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {disbursement.notes || '—'}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Record Payment */}
       {loan.status === 'active' && (

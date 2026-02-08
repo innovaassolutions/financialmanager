@@ -14,7 +14,7 @@ interface Props {
 }
 
 const statusVariant: Record<string, 'success' | 'warning' | 'destructive'> = {
-  active: 'warning',
+  active: 'success',
   paid_off: 'success',
   defaulted: 'destructive',
 };
