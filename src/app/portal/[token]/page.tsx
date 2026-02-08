@@ -4,6 +4,7 @@ import { PortalHeader } from '@/components/portal/portal-header';
 import { TokenTracker } from '@/components/portal/token-tracker';
 import { LoanSummary } from '@/components/portal/loan-summary';
 import { PortalPaymentHistory } from '@/components/portal/payment-history';
+import { PortalDisbursementHistory } from '@/components/portal/disbursement-history';
 import { PortalDocuments } from '@/components/portal/portal-documents';
 import type { TokenArrangement } from '@/types/database';
 
@@ -53,8 +54,9 @@ export default async function PortalPage({ params }: Props) {
       .order('created_at', { ascending: false }),
     supabase
       .from('disbursements')
-      .select('loan_id, amount')
-      .in('loan_id', loanIds.length > 0 ? loanIds : ['_none_']),
+      .select('*')
+      .in('loan_id', loanIds.length > 0 ? loanIds : ['_none_'])
+      .order('disbursement_date', { ascending: true }),
   ]);
 
   const payments = paymentsRes.data ?? [];
@@ -94,6 +96,7 @@ export default async function PortalPage({ params }: Props) {
       totalInterest,
       balance: Math.max(0, balance),
       payments: loanPayments,
+      disbursements: loanDisbursements,
       documents: loanDocs,
       disbursementCount: loanDisbursements.length,
     };
@@ -133,6 +136,9 @@ export default async function PortalPage({ params }: Props) {
                 disbursementCount={loan.disbursementCount}
                 notes={loan.notes}
               />
+              {loan.disbursements.length > 0 && (
+                <PortalDisbursementHistory disbursements={loan.disbursements} />
+              )}
               <PortalDocuments
                 documentUrl={loan.document_url}
                 documents={loan.documents}
