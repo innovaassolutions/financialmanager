@@ -95,7 +95,7 @@ export async function createLoan(formData: FormData) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const filePath = `${user.id}/${loan.id}/${Date.now()}-${file.name}`;
     const { error: uploadError } = await admin.storage
-      .from('loan-documents')
+      .from('loan-document')
       .upload(filePath, buffer, {
         contentType: file.type,
       });
@@ -163,7 +163,7 @@ export async function deleteLoan(loanId: string) {
     .eq('loan_id', loanId);
   if (docs && docs.length > 0) {
     await admin.storage
-      .from('loan-documents')
+      .from('loan-document')
       .remove(docs.map((d) => d.file_path));
   }
 
@@ -216,7 +216,7 @@ export async function uploadDocument(formData: FormData) {
   const filePath = `${user.id}/${loanId}/${Date.now()}-${file.name}`;
 
   const { error: uploadError } = await admin.storage
-    .from('loan-documents')
+    .from('loan-document')
     .upload(filePath, buffer, {
       contentType: file.type,
     });
@@ -240,7 +240,7 @@ export async function deleteDocument(documentId: string, filePath: string, loanI
   if (!user) redirect('/login');
 
   const admin = createAdminClient();
-  await admin.storage.from('loan-documents').remove([filePath]);
+  await admin.storage.from('loan-document').remove([filePath]);
   await supabase.from('loan_documents').delete().eq('id', documentId);
 
   redirect(`/loans/${loanId}`);

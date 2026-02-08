@@ -61,7 +61,7 @@ export default async function LoanDetailPage({ params }: Props) {
   const documents = await Promise.all(
     rawDocs.map(async (doc) => {
       const { data } = await admin.storage
-        .from('loan-documents')
+        .from('loan-document')
         .createSignedUrl(doc.file_path, 3600);
       return { ...doc, url: data?.signedUrl };
     }),

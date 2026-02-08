@@ -58,12 +58,8 @@ export default async function PortalPage({ params }: Props) {
   // Generate signed URLs for documents
   const docsWithUrls = await Promise.all(
     allDocs.map(async (doc) => {
-      const { data } = supabase.storage
-        .from('loan-documents')
-        .getPublicUrl(doc.file_path);
-      // Use signed URL since bucket is private
       const { data: signed } = await supabase.storage
-        .from('loan-documents')
+        .from('loan-document')
         .createSignedUrl(doc.file_path, 3600);
       return { ...doc, url: signed?.signedUrl };
     }),
