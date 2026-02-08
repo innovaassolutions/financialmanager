@@ -83,7 +83,7 @@ export function LoanForm({ creditors }: Props) {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-sm font-medium text-foreground">Interest Rate (%)</label>
+              <label className="text-sm font-medium text-foreground">Annual Interest Rate (%)</label>
               <Input
                 name="interest_rate"
                 type="number"

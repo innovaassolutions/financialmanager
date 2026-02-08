@@ -81,7 +81,7 @@ export function LoanSummary({
             <p className="font-medium">{formatCurrency(totalInterest)}</p>
           </div>
           <div>
-            <p className="text-muted-foreground">Interest Rate</p>
+            <p className="text-muted-foreground">Annual Interest Rate</p>
             <p className="font-medium">
               {formatPercent(interestRate)} ({INTEREST_TYPE_LABELS[interestType]})
             </p>

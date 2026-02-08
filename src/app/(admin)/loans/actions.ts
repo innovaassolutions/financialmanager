@@ -3,6 +3,8 @@
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
 import { generateAccessToken } from '@/lib/utils/tokens';
+import { generateHistoricalAccruals } from '@/lib/utils/interest';
+import type { InterestType, AccrualFrequency } from '@/types/database';
 
 export async function createLoan(formData: FormData) {
   const supabase = await createClient();
@@ -54,6 +56,35 @@ export async function createLoan(formData: FormData) {
     .single();
 
   if (error) throw new Error(error.message);
+
+  // Generate retroactive interest if loan date is in the past
+  if (interestRate > 0) {
+    const accruals = generateHistoricalAccruals({
+      principal,
+      rate: interestRate,
+      interestType: interestType as InterestType,
+      frequency: accrualFrequency as AccrualFrequency,
+      loanDate,
+    });
+
+    if (accruals.length > 0) {
+      const rows = accruals.map((a) => ({
+        user_id: user.id,
+        loan_id: loan.id,
+        amount: a.amount,
+        accrual_date: a.accrual_date,
+        interest_type: a.interest_type,
+        is_manual: false,
+      }));
+
+      // Insert in batches of 500 to avoid payload limits
+      for (let i = 0; i < rows.length; i += 500) {
+        const batch = rows.slice(i, i + 500);
+        await supabase.from('interest_accruals').insert(batch);
+      }
+    }
+  }
+
   redirect(`/loans/${loan.id}`);
 }
 

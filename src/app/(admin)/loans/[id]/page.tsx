@@ -84,7 +84,7 @@ export default async function LoanDetailPage({ params }: Props) {
         </CardHeader>
         <CardContent>
           <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Detail label="Interest Rate" value={formatPercent(Number(loan.interest_rate))} />
+            <Detail label="Annual Interest Rate" value={formatPercent(Number(loan.interest_rate))} />
             <Detail label="Interest Type" value={INTEREST_TYPE_LABELS[loan.interest_type]} />
             <Detail label="Accrual Frequency" value={ACCRUAL_FREQUENCY_LABELS[loan.accrual_frequency]} />
             <Detail label="Loan Date" value={formatDate(loan.loan_date)} />
