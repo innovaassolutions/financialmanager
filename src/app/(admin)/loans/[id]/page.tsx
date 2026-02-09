@@ -78,7 +78,9 @@ export default async function LoanDetailPage({ params }: Props) {
   const disbursements = disbursementsRes.data ?? [];
   const totalPayments = payments.reduce((sum, p) => sum + Number(p.amount), 0);
   const totalInterest = interestAccruals.reduce((sum, i) => sum + Number(i.amount), 0);
-  const balance = Number(loan.principal) + totalInterest - totalPayments;
+  const totalDisbursed = disbursements.reduce((sum, d) => sum + Number(d.amount), 0);
+  const effectivePrincipal = disbursements.length > 0 ? totalDisbursed : Number(loan.principal);
+  const balance = effectivePrincipal + totalInterest - totalPayments;
 
   return (
     <div className="space-y-6">
@@ -99,7 +101,7 @@ export default async function LoanDetailPage({ params }: Props) {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <SummaryCard
           label={disbursements.length > 1 ? `Principal (${disbursements.length} disbursements)` : 'Principal'}
-          value={formatCurrency(Number(loan.principal))}
+          value={formatCurrency(effectivePrincipal)}
         />
         <SummaryCard label="Interest Accrued" value={formatCurrency(totalInterest)} />
         <SummaryCard label="Total Paid" value={formatCurrency(totalPayments)} />
@@ -235,6 +237,13 @@ export default async function LoanDetailPage({ params }: Props) {
                     </TableCell>
                   </TableRow>
                 ))}
+                {disbursements.length > 1 && (
+                  <TableRow className="border-t-2 font-semibold">
+                    <TableCell>Total</TableCell>
+                    <TableCell>{formatCurrency(totalDisbursed)}</TableCell>
+                    <TableCell />
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           )}
