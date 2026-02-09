@@ -6,14 +6,15 @@ export const dynamic = 'force-dynamic';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
-import { formatCurrency, formatDate, formatPercent } from '@/lib/utils/format';
-import { LOAN_STATUS_LABELS, INTEREST_TYPE_LABELS, ACCRUAL_FREQUENCY_LABELS } from '@/lib/utils/constants';
+import { formatCurrency, formatDate } from '@/lib/utils/format';
+import { LOAN_STATUS_LABELS, INTEREST_TYPE_LABELS } from '@/lib/utils/constants';
 import { PaymentForm } from '@/components/admin/payment-form';
 import { DisbursementForm } from '@/components/admin/disbursement-form';
 import { LoanActions } from '@/components/admin/loan-actions';
 import { PortalLink } from '@/components/admin/portal-link';
 import { DeletePaymentButton } from '@/components/admin/delete-payment-button';
 import { LoanDocumentLink } from '@/components/admin/loan-document-link';
+import { LoanDetailsForm } from '@/components/admin/loan-details-form';
 import { FileUploadForm } from '@/components/admin/file-upload-form';
 import { DeleteDocumentButton } from '@/components/admin/delete-document-button';
 
@@ -113,21 +114,15 @@ export default async function LoanDetailPage({ params }: Props) {
       </div>
 
       {/* Loan Details */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Loan Details</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <dl className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <Detail label="Annual Interest Rate" value={formatPercent(Number(loan.interest_rate))} />
-            <Detail label="Interest Type" value={INTEREST_TYPE_LABELS[loan.interest_type]} />
-            <Detail label="Accrual Frequency" value={ACCRUAL_FREQUENCY_LABELS[loan.accrual_frequency]} />
-            <Detail label="Loan Date" value={formatDate(loan.loan_date)} />
-            <Detail label="Due Date" value={loan.due_date ? formatDate(loan.due_date) : 'No due date'} />
-            {loan.notes && <Detail label="Notes" value={loan.notes} />}
-          </dl>
-        </CardContent>
-      </Card>
+      <LoanDetailsForm
+        loanId={loan.id}
+        interestRate={Number(loan.interest_rate)}
+        interestType={loan.interest_type}
+        accrualFrequency={loan.accrual_frequency}
+        loanDate={loan.loan_date}
+        dueDate={loan.due_date}
+        notes={loan.notes}
+      />
 
       {/* Document Link */}
       <Card>
@@ -364,11 +359,3 @@ function SummaryCard({
   );
 }
 
-function Detail({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <dt className="text-sm text-muted-foreground">{label}</dt>
-      <dd className="mt-0.5 font-medium text-foreground">{value}</dd>
-    </div>
-  );
-}

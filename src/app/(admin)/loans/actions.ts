@@ -230,6 +230,94 @@ export async function recordDisbursement(formData: FormData) {
   redirect(`/loans/${loanId}`);
 }
 
+export async function updateLoan(formData: FormData) {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) redirect('/login');
+
+  const loanId = formData.get('loan_id') as string;
+  const interestRate = parseFloat(formData.get('interest_rate') as string) || 0;
+  const interestType = formData.get('interest_type') as string;
+  const accrualFrequency = formData.get('accrual_frequency') as string;
+  const dueDate = (formData.get('due_date') as string) || null;
+  const notes = (formData.get('notes') as string) || null;
+
+  // Track whether interest params changed
+  const oldRate = parseFloat(formData.get('old_interest_rate') as string) || 0;
+  const oldType = formData.get('old_interest_type') as string;
+  const oldFrequency = formData.get('old_accrual_frequency') as string;
+  const interestChanged =
+    interestRate !== oldRate ||
+    interestType !== oldType ||
+    accrualFrequency !== oldFrequency;
+
+  await supabase
+    .from('loans')
+    .update({
+      interest_rate: interestRate,
+      interest_type: interestType,
+      accrual_frequency: accrualFrequency,
+      due_date: dueDate,
+      notes,
+    })
+    .eq('id', loanId);
+
+  // Regenerate interest accruals if interest params changed
+  if (interestChanged) {
+    // Delete non-manual accruals
+    await supabase
+      .from('interest_accruals')
+      .delete()
+      .eq('loan_id', loanId)
+      .eq('is_manual', false);
+
+    if (interestRate > 0) {
+      // Fetch disbursements for timeline
+      const { data: allDisbursements } = await supabase
+        .from('disbursements')
+        .select('amount, disbursement_date')
+        .eq('loan_id', loanId)
+        .order('disbursement_date', { ascending: true });
+
+      const disbursements = allDisbursements ?? [];
+      const earliestDate = disbursements[0]?.disbursement_date;
+      const totalPrincipal = disbursements.reduce((sum, d) => sum + Number(d.amount), 0);
+
+      if (earliestDate) {
+        const accruals = generateHistoricalAccruals({
+          principal: totalPrincipal,
+          rate: interestRate,
+          interestType: interestType as InterestType,
+          frequency: accrualFrequency as AccrualFrequency,
+          loanDate: earliestDate,
+          disbursements: disbursements.map((d) => ({
+            amount: Number(d.amount),
+            date: d.disbursement_date,
+          })),
+        });
+
+        if (accruals.length > 0) {
+          const rows = accruals.map((a) => ({
+            user_id: user.id,
+            loan_id: loanId,
+            amount: a.amount,
+            accrual_date: a.accrual_date,
+            interest_type: a.interest_type,
+            is_manual: false,
+          }));
+
+          for (let i = 0; i < rows.length; i += 500) {
+            const batch = rows.slice(i, i + 500);
+            await supabase.from('interest_accruals').insert(batch);
+          }
+        }
+      }
+    }
+  }
+
+  redirect(`/loans/${loanId}`);
+}
+
 export async function updateLoanStatus(loanId: string, status: string) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
