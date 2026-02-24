@@ -12,14 +12,14 @@ const opportunities = [
   {
     name: 'Saidi Canada Project',
     description:
-      'Web development project. Estimated value ~USD 9,000 (~RM40,500). In active development.',
+      'Web development project. Estimated value ~USD 9,000 (~RM40,500). In active development. Expected close: week of 2 March 2026.',
     status: 'In progress',
     variant: 'success' as const,
   },
   {
     name: 'FlowForge Education Platform',
     description:
-      'Education technology platform. Estimated value ~USD 10,000 (~RM45,000). Development ongoing.',
+      'Education technology platform. Estimated value ~USD 10,000 (~RM45,000). Development ongoing. Expected close: mid-March 2026.',
     status: 'In progress',
     variant: 'success' as const,
   },
