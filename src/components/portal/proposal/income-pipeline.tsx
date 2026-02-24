@@ -27,6 +27,8 @@ const opportunities = [
     name: 'NovaVoice AI',
     description:
       'AI-powered voice assistant product with completed business plan. Seeking seed investment.',
+    link: 'https://novavoice.innovaas.co/bizplan?token=1bb379f3-e340-4ca5-a7b5-72b407027ad9',
+    linkLabel: 'View Business Plan',
     status: 'Fundraising',
     variant: 'secondary' as const,
   },
@@ -66,6 +68,16 @@ export function IncomePipeline() {
               <p className="mt-1.5 text-sm text-muted-foreground">
                 {opp.description}
               </p>
+              {'link' in opp && opp.link && (
+                <a
+                  href={opp.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-2"
+                >
+                  {opp.linkLabel ?? 'Learn more'}
+                </a>
+              )}
             </div>
           ))}
         </div>
