@@ -27,4 +27,5 @@ export const ROUTES = {
   payments: '/payments',
   chat: '/chat',
   portal: (token: string) => `/portal/${token}`,
+  proposalPortal: (token: string) => `/portal/proposal/${token}`,
 } as const;
