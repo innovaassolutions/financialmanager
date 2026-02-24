@@ -22,16 +22,6 @@ const events = [
     description: 'First missed payment. Hairul continues to be patient.',
   },
   {
-    date: 'Jun 2025',
-    title: 'Car service absorbed',
-    description: 'Hairul covers RM2,000 car service cost out of pocket.',
-  },
-  {
-    date: 'Sep 2025',
-    title: 'Road tax & insurance absorbed',
-    description: 'Hairul renews road tax and insurance (RM1,500) out of pocket.',
-  },
-  {
     date: 'Feb 2026',
     title: 'This proposal',
     description: 'Formal repayment plan presented with 15% patience premium.',

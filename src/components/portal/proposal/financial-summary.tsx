@@ -12,19 +12,9 @@ interface FinancialSummaryProps {
 }
 
 export function FinancialSummary({ disbursements, totalDisbursed }: FinancialSummaryProps) {
-  const rentalDisbursements = disbursements.filter(
+  const rentalCount = disbursements.filter(
     (d) => d.notes?.includes('Monthly rental'),
-  );
-  const serviceDisbursements = disbursements.filter(
-    (d) => d.notes?.includes('Car service'),
-  );
-  const roadTaxDisbursements = disbursements.filter(
-    (d) => d.notes?.includes('Road tax'),
-  );
-
-  const rentalTotal = rentalDisbursements.reduce((sum, d) => sum + d.amount, 0);
-  const serviceTotal = serviceDisbursements.reduce((sum, d) => sum + d.amount, 0);
-  const roadTaxTotal = roadTaxDisbursements.reduce((sum, d) => sum + d.amount, 0);
+  ).length;
 
   const patiencePremium = totalDisbursed * 0.15;
   const totalCommitment = totalDisbursed + patiencePremium;
@@ -39,28 +29,10 @@ export function FinancialSummary({ disbursements, totalDisbursed }: FinancialSum
           {/* Rental */}
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">
-              Monthly rental ({rentalDisbursements.length} months x RM1,400)
+              Monthly rental ({rentalCount} months x RM1,400)
             </span>
             <span className="font-medium text-foreground">
-              {formatMYR(rentalTotal)}
-            </span>
-          </div>
-
-          {/* Car service */}
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">Car service costs</span>
-            <span className="font-medium text-foreground">
-              {formatMYR(serviceTotal)}
-            </span>
-          </div>
-
-          {/* Road tax */}
-          <div className="flex items-center justify-between text-sm">
-            <span className="text-muted-foreground">
-              Road tax & insurance
-            </span>
-            <span className="font-medium text-foreground">
-              {formatMYR(roadTaxTotal)}
+              {formatMYR(totalDisbursed)}
             </span>
           </div>
 

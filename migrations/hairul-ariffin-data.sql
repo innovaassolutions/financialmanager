@@ -2,10 +2,8 @@
 -- Run this in Supabase SQL Editor
 --
 -- Hairul Ariffin Enterprise - Car rental (Perodua Bezza) since Sep 2023
--- 22 disbursements totaling RM31,500:
+-- 20 disbursements totaling RM28,000:
 --   20x RM1,400 monthly rental (Jul 2024 - Feb 2026)
---   1x RM2,000 car service
---   1x RM1,500 road tax/insurance
 -- 0 payments
 
 DO $$
@@ -41,18 +39,15 @@ BEGIN
     'monthly',
     '2024-07-01',
     'active',
-    'Unpaid car rental (Perodua Bezza) from Jul 2024 onwards, plus car service and road tax costs absorbed by Hairul. See disbursements for breakdown.'
+    'Unpaid car rental (Perodua Bezza) from Jul 2024 onwards. See disbursements for breakdown.'
   )
   RETURNING id INTO v_loan_id;
 
   -- ============================================
   -- 3. Disbursements (Amounts owed TO Hairul Ariffin)
   --    20x monthly rental @ RM1,400 (Jul 2024 - Feb 2026)
-  --    1x car service RM2,000
-  --    1x road tax/insurance RM1,500
   -- ============================================
   INSERT INTO disbursements (user_id, loan_id, amount, disbursement_date, notes) VALUES
-    -- Monthly rental arrears
     (v_user_id, v_loan_id, 1400.00, '2024-07-01', 'Monthly rental - July 2024'),
     (v_user_id, v_loan_id, 1400.00, '2024-08-01', 'Monthly rental - August 2024'),
     (v_user_id, v_loan_id, 1400.00, '2024-09-01', 'Monthly rental - September 2024'),
@@ -72,10 +67,7 @@ BEGIN
     (v_user_id, v_loan_id, 1400.00, '2025-11-01', 'Monthly rental - November 2025'),
     (v_user_id, v_loan_id, 1400.00, '2025-12-01', 'Monthly rental - December 2025'),
     (v_user_id, v_loan_id, 1400.00, '2026-01-01', 'Monthly rental - January 2026'),
-    (v_user_id, v_loan_id, 1400.00, '2026-02-01', 'Monthly rental - February 2026'),
-    -- Additional costs absorbed by Hairul
-    (v_user_id, v_loan_id, 2000.00, '2025-06-15', 'Car service costs absorbed by Hairul'),
-    (v_user_id, v_loan_id, 1500.00, '2025-09-15', 'Road tax and insurance renewal absorbed by Hairul');
+    (v_user_id, v_loan_id, 1400.00, '2026-02-01', 'Monthly rental - February 2026');
 
   -- ============================================
   -- 4. Payments (none yet)

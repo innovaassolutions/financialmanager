@@ -16,11 +16,10 @@ export function PersonalLetter() {
 
           <p>
             I know you have a paying customer waiting for the Bezza. I know every
-            month that passes without payment is money out of your pocket — your
-            road tax renewal, the car service, the rental income you could have
-            been earning. You have absorbed all of this without once raising your
-            voice or threatening me. That kind of patience and character is rare,
-            and I do not take it for granted.
+            month that passes without payment is money out of your pocket — the
+            rental income you could have been earning. You have absorbed all of
+            this without once raising your voice or threatening me. That kind of
+            patience and character is rare, and I do not take it for granted.
           </p>
 
           <p>

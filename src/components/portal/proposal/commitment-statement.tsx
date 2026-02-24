@@ -18,12 +18,6 @@ export function CommitmentStatement() {
             </p>
 
             <p>
-              <strong>Road tax renewal.</strong> I commit to ensuring the road
-              tax is renewed on time when it next falls due, at my expense. You
-              should never have to absorb this cost again.
-            </p>
-
-            <p>
               <strong>Transparent tracking.</strong> This portal will be updated
               with every payment made. You can check progress at any time —
               no need to chase me for updates.
