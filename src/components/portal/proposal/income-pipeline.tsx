@@ -27,8 +27,8 @@ const opportunities = [
     name: 'NovaVoice AI',
     description:
       'AI-powered voice assistant product with completed business plan. Seeking seed investment.',
-    link: 'https://novavoice.innovaas.co/bizplan?token=1bb379f3-e340-4ca5-a7b5-72b407027ad9',
-    linkLabel: 'View Business Plan',
+    link: 'https://novavoice.innovaas.co/bizplan',
+    accessToken: '1bb379f3-e340-4ca5-a7b5-72b407027ad9',
     status: 'Fundraising',
     variant: 'secondary' as const,
   },
@@ -69,14 +69,24 @@ export function IncomePipeline() {
                 {opp.description}
               </p>
               {'link' in opp && opp.link && (
-                <a
-                  href={opp.link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-2 inline-block text-sm font-medium text-primary underline underline-offset-2"
-                >
-                  {opp.linkLabel ?? 'Learn more'}
-                </a>
+                <div className="mt-2 space-y-1.5">
+                  <a
+                    href={opp.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block text-sm font-medium text-primary underline underline-offset-2"
+                  >
+                    View Business Plan
+                  </a>
+                  {'accessToken' in opp && opp.accessToken && (
+                    <p className="text-xs text-muted-foreground">
+                      Access token:{' '}
+                      <code className="select-all rounded bg-muted px-1.5 py-0.5 font-mono text-foreground">
+                        {opp.accessToken}
+                      </code>
+                    </p>
+                  )}
+                </div>
               )}
             </div>
           ))}
