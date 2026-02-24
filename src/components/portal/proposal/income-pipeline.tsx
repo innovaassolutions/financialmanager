@@ -5,7 +5,7 @@ const opportunities = [
   {
     name: 'NinjaOne — SE Asia Channel Partner Manager',
     description:
-      'Interview with hiring manager on 25 February 2026 for their first South East Asia Channel Partner Manager role. Full-time position with stable salary.',
+      'Interview with hiring manager on 25 February 2026 for their first South East Asia Channel Partner Manager role. Referred by a close mutual friend who worked with both of us. Full-time position with stable salary.',
     status: 'Interview scheduled',
     variant: 'warning' as const,
   },
