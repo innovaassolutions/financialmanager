@@ -12,14 +12,16 @@ const opportunities = [
   {
     name: 'Saidi Canada Project',
     description:
-      'Web development project. Estimated value ~USD 9,000 (~RM40,500). In active development. Expected close: week of 2 March 2026.',
+      'Web development project. Estimated value ~USD 9,000 (~RM40,500). In active development.',
+    closeDate: 'Expected close: week of 2 March 2026',
     status: 'In progress',
     variant: 'success' as const,
   },
   {
     name: 'FlowForge Education Platform',
     description:
-      'Education technology platform. Estimated value ~USD 10,000 (~RM45,000). Development ongoing. Expected close: mid-March 2026.',
+      'Education technology platform. Estimated value ~USD 10,000 (~RM45,000). Development ongoing.',
+    closeDate: 'Expected close: mid-March 2026',
     status: 'In progress',
     variant: 'success' as const,
   },
@@ -68,6 +70,11 @@ export function IncomePipeline() {
               <p className="mt-1.5 text-sm text-muted-foreground">
                 {opp.description}
               </p>
+              {'closeDate' in opp && opp.closeDate && (
+                <p className="mt-1.5 inline-block rounded bg-success/10 px-2 py-0.5 text-xs font-medium text-success">
+                  {opp.closeDate}
+                </p>
+              )}
               {'link' in opp && opp.link && (
                 <div className="mt-2 space-y-1.5">
                   <a
