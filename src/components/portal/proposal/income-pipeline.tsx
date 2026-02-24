@@ -3,10 +3,10 @@ import { Badge } from '@/components/ui/badge';
 
 const opportunities = [
   {
-    name: 'NinjaOne Partnership',
+    name: 'NinjaOne — SE Asia Channel Partner Manager',
     description:
-      'MSP/RMM platform partnership meeting scheduled for 25 February 2026. Recurring revenue from managed IT services.',
-    status: 'Meeting scheduled',
+      'Interview with hiring manager on 25 February 2026 for their first South East Asia Channel Partner Manager role. Full-time position with stable salary.',
+    status: 'Interview scheduled',
     variant: 'warning' as const,
   },
   {
