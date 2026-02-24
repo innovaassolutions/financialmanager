@@ -26,11 +26,11 @@ const opportunities = [
   {
     name: 'NovaVoice AI',
     description:
-      'AI-powered voice assistant product with completed business plan. Seeking seed investment.',
+      'AI-powered voice assistant actively pursuing new business in North America through our Calgary, Alberta-based sales agent Jeff Zimmer. Jeff brings a long list of existing clients from similar industry verticals that NovaVoice targets. In active sell mode for the past week with two new opportunities currently in discussion.',
     link: 'https://novavoice.innovaas.co/bizplan',
     accessToken: '1bb379f3-e340-4ca5-a7b5-72b407027ad9',
-    status: 'Fundraising',
-    variant: 'secondary' as const,
+    status: 'Active sales',
+    variant: 'success' as const,
   },
   {
     name: 'Employment Search',
